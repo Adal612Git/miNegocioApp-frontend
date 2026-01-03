@@ -70,6 +70,22 @@
     document.getElementById("loginButton")?.addEventListener("click", handleLogin);
   }
 
+  async function handleForgotPassword(event) {
+    event?.preventDefault?.();
+    const email = getValue("email") || prompt("Ingresa tu correo");
+    if (!email) return;
+    try {
+      await api.post("/auth/forgot-password", { email });
+      alert("Si el correo existe, te enviaremos un enlace de recuperacion.");
+    } catch (err) {
+      alert("No se pudo enviar el correo de recuperacion.");
+    }
+  }
+
+  document
+    .getElementById("forgotPassword")
+    ?.addEventListener("click", handleForgotPassword);
+
   const registerForm = document.getElementById("registerForm");
   if (registerForm) {
     registerForm.addEventListener("submit", handleRegister);
