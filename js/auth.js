@@ -15,6 +15,14 @@
       const data = await api.post("/auth/login", { email, password });
       if (data?.token) {
         localStorage.setItem("token", data.token);
+        const existing = localStorage.getItem("user");
+        if (!existing) {
+          const nameFromEmail = email.split("@")[0] || "Usuario";
+          localStorage.setItem(
+            "user",
+            JSON.stringify({ name: nameFromEmail })
+          );
+        }
         window.location.href = "Inicio.html";
       }
     } catch (err) {
@@ -45,6 +53,9 @@
       });
       if (data?.token) {
         localStorage.setItem("token", data.token);
+        if (name) {
+          localStorage.setItem("user", JSON.stringify({ name }));
+        }
         window.location.href = "Inicio.html";
       }
     } catch (err) {

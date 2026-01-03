@@ -39,7 +39,7 @@
   <main class="main">
     <div class="topbar">
       <div class="title">
-        <h1>Hola, Miguel</h1>
+        <h1 id="welcome-message">Hola</h1>
         <p>Resumen rápido del día y accesos a los módulos.</p>
       </div>
       <div class="top-actions">
@@ -99,5 +99,20 @@
 </div>
 
 <script src="js/ui.js"></script>
+<script>
+  (function () {
+    const stored = localStorage.getItem("user");
+    if (!stored) return;
+    try {
+      const user = JSON.parse(stored);
+      if (user && user.name) {
+        const el = document.getElementById("welcome-message");
+        if (el) el.textContent = `Hola, ${user.name}`;
+      }
+    } catch {
+      return;
+    }
+  })();
+</script>
 </body>
 </html>
