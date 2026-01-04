@@ -162,7 +162,7 @@
         alert("Stock insuficiente");
         return;
       }
-      alert("No se pudo procesar la venta");
+      alert(window.getErrorMessage(err, "No se pudo procesar la venta"));
     }
   }
 
@@ -172,7 +172,7 @@
       catalog = Array.isArray(data) ? data : [];
       renderCatalog();
     } catch (err) {
-      alert("No se pudieron cargar productos");
+      alert(window.getErrorMessage(err, "No se pudieron cargar productos"));
     }
   }
 

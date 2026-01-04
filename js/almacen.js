@@ -169,9 +169,12 @@
       closeModal();
     } catch (err) {
       alert(
-        editingId
-          ? "No se pudo actualizar el producto"
-          : "No se pudo agregar el producto"
+        window.getErrorMessage(
+          err,
+          editingId
+            ? "No se pudo actualizar el producto"
+            : "No se pudo agregar el producto"
+        )
       );
     }
   }
@@ -197,7 +200,7 @@
       await api.delete(`/products/${product._id}`);
       await loadProducts();
     } catch (err) {
-      alert("No se pudo eliminar el producto");
+      alert(window.getErrorMessage(err, "No se pudo eliminar el producto"));
     }
   }
 
@@ -207,7 +210,7 @@
       products = Array.isArray(data) ? data : [];
       render();
     } catch (err) {
-      alert("No se pudieron cargar productos");
+      alert(window.getErrorMessage(err, "No se pudieron cargar productos"));
     }
   }
 

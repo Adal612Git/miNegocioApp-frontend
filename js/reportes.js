@@ -110,7 +110,7 @@
       renderTop(topProducts);
       renderVentas(topProducts);
     } catch (err) {
-      alert("No se pudieron cargar los reportes");
+      alert(window.getErrorMessage(err, "No se pudieron cargar los reportes"));
     }
   }
 

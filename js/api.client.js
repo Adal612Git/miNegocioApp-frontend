@@ -28,10 +28,12 @@ class ApiClient {
       return null;
     }
 
-    const isJson = response.headers
-      .get("content-type")
-      ?.includes("application/json");
-    const data = isJson ? await response.json() : null;
+    let data = null;
+    try {
+      data = await response.json();
+    } catch {
+      data = null;
+    }
 
     if (!response.ok) {
       const error = new Error(data?.message || "REQUEST_FAILED");
@@ -67,3 +69,6 @@ class ApiClient {
 }
 
 window.ApiClient = ApiClient;
+window.getErrorMessage = function getErrorMessage(err, fallback) {
+  return err?.data?.message || err?.message || fallback || "REQUEST_FAILED";
+};

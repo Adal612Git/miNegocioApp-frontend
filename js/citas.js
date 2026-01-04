@@ -97,7 +97,7 @@
       renderAppointments(list);
       updateCalendar(list);
     } catch (err) {
-      alert("No se pudieron cargar las citas");
+      alert(window.getErrorMessage(err, "No se pudieron cargar las citas"));
     }
   }
 
@@ -126,7 +126,7 @@
         alert("Horario ocupado");
         return;
       }
-      alert("No se pudo crear la cita");
+      alert(window.getErrorMessage(err, "No se pudo crear la cita"));
     }
   }
 

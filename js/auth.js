@@ -39,7 +39,7 @@
         alert("Contraseña incorrecta");
         return;
       }
-      alert(err?.data?.message || "Credenciales invalidas");
+      alert(window.getErrorMessage(err, "Credenciales invalidas"));
     }
   }
 
@@ -71,7 +71,7 @@
         window.location.href = "Inicio.html";
       }
     } catch (err) {
-      const message = err?.data?.message || "No se pudo registrar";
+      const message = window.getErrorMessage(err, "No se pudo registrar");
       setRegisterError(message);
       alert(message);
     }
@@ -92,7 +92,7 @@
       await api.post("/auth/forgot-password", { email });
       alert("Si el correo existe, te enviaremos un enlace de recuperacion.");
     } catch (err) {
-      alert("No se pudo enviar el correo de recuperacion.");
+      alert(window.getErrorMessage(err, "No se pudo enviar el correo de recuperacion."));
     }
   }
 

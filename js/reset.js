@@ -24,9 +24,10 @@
       alert("Contraseña actualizada. Ya puedes iniciar sesión.");
       window.location.href = "index.html";
     } catch (err) {
-      alert("No se pudo actualizar la contraseña.");
+      alert(window.getErrorMessage(err, "No se pudo actualizar la contrasena."));
     }
   }
 
   document.getElementById("resetForm")?.addEventListener("submit", handleReset);
 })();
+
