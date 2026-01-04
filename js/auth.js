@@ -6,6 +6,21 @@
     return el ? el.value.trim() : "";
   }
 
+  function setRegisterError(message) {
+    const el = document.getElementById("registerError");
+    if (!el) return;
+    el.textContent = message || "";
+  }
+
+  function persistUserFromResponse(data, fallbackName) {
+    const user =
+      data?.user || data?.data?.user || data?.profile || data?.account || null;
+    const name = user?.name || data?.name || fallbackName;
+    if (name) {
+      localStorage.setItem("user", JSON.stringify({ ...(user || {}), name }));
+    }
+  }
+
   async function handleLogin(event) {
     event.preventDefault();
     const email = getValue("email");
@@ -15,18 +30,16 @@
       const data = await api.post("/auth/login", { email, password });
       if (data?.token) {
         localStorage.setItem("token", data.token);
-        const existing = localStorage.getItem("user");
-        if (!existing) {
-          const nameFromEmail = email.split("@")[0] || "Usuario";
-          localStorage.setItem(
-            "user",
-            JSON.stringify({ name: nameFromEmail })
-          );
-        }
+        const nameFromEmail = email.split("@")[0] || "Usuario";
+        persistUserFromResponse(data, nameFromEmail);
         window.location.href = "Inicio.html";
       }
     } catch (err) {
-      alert("Credenciales invalidas");
+      if (err?.status === 401) {
+        alert("Contraseña incorrecta");
+        return;
+      }
+      alert(err?.data?.message || "Credenciales invalidas");
     }
   }
 
@@ -45,6 +58,7 @@
     }
 
     try {
+      setRegisterError("");
       const data = await api.post("/auth/register", {
         business_name: businessName,
         name,
@@ -53,13 +67,13 @@
       });
       if (data?.token) {
         localStorage.setItem("token", data.token);
-        if (name) {
-          localStorage.setItem("user", JSON.stringify({ name }));
-        }
+        persistUserFromResponse(data, name || email.split("@")[0] || "Usuario");
         window.location.href = "Inicio.html";
       }
     } catch (err) {
-      alert("No se pudo registrar");
+      const message = err?.data?.message || "No se pudo registrar";
+      setRegisterError(message);
+      alert(message);
     }
   }
 

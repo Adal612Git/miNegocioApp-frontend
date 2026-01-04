@@ -30,7 +30,7 @@
         </div>
         <div class="field">
           <label>Teléfono</label>
-          <input placeholder="33 0000 0000">
+          <input id="phone" type="tel" placeholder="33 0000 0000" maxlength="10" required inputmode="numeric">
         </div>
       </div>
 
@@ -57,6 +57,7 @@
 
       <button id="registerButton" class="btn" type="submit">Crear cuenta</button>
     </form>
+    <div id="registerError" class="form-error" role="alert"></div>
 
     <div class="small">
       ¿Ya tienes cuenta? <a class="link" href="index.html">Inicia sesión</a>

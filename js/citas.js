@@ -1,9 +1,54 @@
 (() => {
   const api = new ApiClient();
   const tableBody = document.querySelector("#tablaCitas tbody");
+  const calendarEl = document.getElementById("calendar");
+
+  let calendar = null;
 
   function formatDate(date) {
     return date.toLocaleDateString("es-MX");
+  }
+
+  function getDatePart(value) {
+    if (!value) return null;
+    if (typeof value === "string") return value.slice(0, 10);
+    return new Date(value).toISOString().slice(0, 10);
+  }
+
+  function buildEvents(list) {
+    return list
+      .map((item) => {
+        const datePart = getDatePart(
+          item.date || item.start_date || item.startDate || item.start
+        );
+        if (!datePart) return null;
+        const timePart = item.time || item.start_time || "00:00";
+        const title = item.title || item.notes || "Cita";
+        return {
+          id: item._id || item.id || undefined,
+          title,
+          start: `${datePart}T${timePart}`,
+          allDay: !item.time,
+        };
+      })
+      .filter(Boolean);
+  }
+
+  function initCalendar() {
+    if (!calendarEl || !window.FullCalendar) return;
+    calendar = new FullCalendar.Calendar(calendarEl, {
+      initialView: "timeGridWeek",
+      locale: "es",
+      height: 520,
+      events: [],
+    });
+    calendar.render();
+  }
+
+  function updateCalendar(list) {
+    if (!calendar) return;
+    calendar.removeAllEvents();
+    calendar.addEventSource(buildEvents(list));
   }
 
   function renderAppointments(list) {
@@ -48,7 +93,9 @@
         `/appointments?start_date=${start}&end_date=${end}`
       );
 
-      renderAppointments(Array.isArray(data) ? data : []);
+      const list = Array.isArray(data) ? data : [];
+      renderAppointments(list);
+      updateCalendar(list);
     } catch (err) {
       alert("No se pudieron cargar las citas");
     }
@@ -85,5 +132,6 @@
 
   document.getElementById("btnNuevaCita")?.addEventListener("click", handleCreate);
 
+  initCalendar();
   loadAppointments();
 })();

@@ -5,9 +5,21 @@
   const tabServicios = document.getElementById("tabServicios");
   const tabArticulos = document.getElementById("tabArticulos");
   const addBtn = document.getElementById("btnAgregar");
+  const modal = document.getElementById("productBackdrop");
+  const form = document.getElementById("productForm");
+  const modalTitle = document.getElementById("productModalTitle");
+  const closeBtn = document.getElementById("productClose");
+  const cancelBtn = document.getElementById("productCancel");
+  const nameInput = document.getElementById("productName");
+  const categorySelect = document.getElementById("productCategory");
+  const priceInput = document.getElementById("productPrice");
+  const stockInput = document.getElementById("productStock");
 
   let mode = "servicios";
   let products = [];
+  let editingId = null;
+
+  const CATEGORY_OPTIONS = ["Servicio", "Producto", "Accesorio", "Insumo"];
 
   function formatMoney(amount) {
     const value = Number(amount || 0);
@@ -61,7 +73,7 @@
         const id = btn.getAttribute("data-edit");
         const product = products.find((item) => item._id === id);
         if (product) {
-          handleEdit(product);
+          openModal(product);
         }
       });
     });
@@ -82,52 +94,100 @@
     return Number.isNaN(num) ? fallback : num;
   }
 
-  async function handleAdd() {
-    const defaultCategory = mode === "servicios" ? "Servicios" : "Productos";
-    const name = prompt("Nombre del producto/servicio");
-    if (!name) return;
+  function normalizeCategoryChoice(value, fallback) {
+    if (!value) return fallback;
+    const match = CATEGORY_OPTIONS.find(
+      (option) => option.toLowerCase() === value.toLowerCase()
+    );
+    return match || fallback;
+  }
 
-    const category = prompt("Categoria", defaultCategory) || defaultCategory;
-    const price = toNumber(prompt("Precio"), 0);
+  function openModal(product) {
+    if (!modal || !form) return;
+    const defaultCategory = mode === "servicios" ? "Servicio" : "Producto";
+    const isEdit = Boolean(product);
+    editingId = isEdit ? product._id : null;
+    if (modalTitle) {
+      modalTitle.textContent = isEdit ? "Editar producto" : "Nuevo producto";
+    }
+    if (nameInput) nameInput.value = product?.name || "";
+    if (categorySelect) {
+      categorySelect.value = normalizeCategoryChoice(
+        product?.category,
+        defaultCategory
+      );
+    }
+    if (priceInput) priceInput.value = product?.price ?? "";
+    if (stockInput) stockInput.value = product?.stock ?? "";
+    modal.style.display = "flex";
+  }
+
+  function closeModal() {
+    if (!modal || !form) return;
+    modal.style.display = "none";
+    form.reset();
+    editingId = null;
+  }
+
+  async function handleSubmit(event) {
+    event?.preventDefault?.();
+    const defaultCategory = mode === "servicios" ? "Servicio" : "Producto";
+    const name = nameInput?.value?.trim();
+    if (!name) {
+      alert("Nombre requerido");
+      return;
+    }
+
+    const category = normalizeCategoryChoice(
+      categorySelect?.value,
+      defaultCategory
+    );
+    const price = toNumber(priceInput?.value, 0);
     const stockDefault = mode === "servicios" ? 0 : 1;
-    const stock = Math.max(0, Math.round(toNumber(prompt("Stock"), stockDefault)));
+    const stock = Math.max(
+      0,
+      Math.round(toNumber(stockInput?.value, stockDefault))
+    );
 
     try {
-      await api.post("/products", {
-        name: name.trim(),
-        category: category.trim(),
-        price,
-        stock,
-      });
+      if (editingId) {
+        await api.patch(`/products/${editingId}`, {
+          name,
+          category,
+          price,
+          stock,
+        });
+      } else {
+        await api.post("/products", {
+          name,
+          category,
+          price,
+          stock,
+        });
+      }
       await loadProducts();
+      closeModal();
     } catch (err) {
-      alert("No se pudo agregar el producto");
+      alert(
+        editingId
+          ? "No se pudo actualizar el producto"
+          : "No se pudo agregar el producto"
+      );
     }
   }
 
-  async function handleEdit(product) {
-    const name = prompt("Nombre", product.name || "") || product.name || "";
-    const category =
-      prompt("Categoria", product.category || "") || product.category || "";
-    const price = toNumber(prompt("Precio", product.price), product.price || 0);
-    const stock = Math.max(
-      0,
-      Math.round(toNumber(prompt("Stock", product.stock), product.stock || 0))
-    );
-
-    const updates = {
-      name: name.trim(),
-      category: category.trim(),
-      price,
-      stock,
-    };
-
-    try {
-      await api.patch(`/products/${product._id}`, updates);
-      await loadProducts();
-    } catch (err) {
-      alert("No se pudo actualizar el producto");
+  function enforcePriceFormat() {
+    if (!priceInput) return;
+    let value = priceInput.value.replace(/[^0-9.]/g, "");
+    const parts = value.split(".");
+    if (parts.length > 2) {
+      value = `${parts[0]}.${parts.slice(1).join("")}`;
     }
+    if (parts[1]) {
+      parts[1] = parts[1].slice(0, 2);
+      value = `${parts[0]}.${parts[1]}`;
+    }
+    priceInput.value = value;
   }
 
   async function handleDelete(product) {
@@ -165,7 +225,14 @@
     render();
   });
 
-  addBtn?.addEventListener("click", handleAdd);
+  addBtn?.addEventListener("click", () => openModal());
+  form?.addEventListener("submit", handleSubmit);
+  closeBtn?.addEventListener("click", closeModal);
+  cancelBtn?.addEventListener("click", closeModal);
+  modal?.addEventListener("click", (event) => {
+    if (event.target === modal) closeModal();
+  });
+  priceInput?.addEventListener("input", enforcePriceFormat);
 
   loadProducts();
 })();

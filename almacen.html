@@ -17,7 +17,7 @@
     </div>
     <div class="side-user">
       <div class="avatar">M</div>
-      <div><div class="name">Nombre</div><div class="meta">Administrador</div></div>
+      <div><div class="name">Usuario</div><div class="meta">Administrador</div></div>
     </div>
     <nav class="nav">
       <a href="Inicio.html"><i class="fa-solid fa-house"></i> Inicio</a>
@@ -61,5 +61,41 @@
 <script src="js/api.client.js"></script>
 <script src="js/ui.js"></script>
 <script src="js/almacen.js"></script>
-</body>
+<div class="modal-backdrop" id="productBackdrop">
+  <div class="modal">
+    <div class="modal-head">
+      <h3 id="productModalTitle" style="margin:0">Producto</h3>
+      <button class="close" id="productClose" type="button">X</button>
+    </div>
+    <form id="productForm">
+      <div class="field">
+        <label>Nombre</label>
+        <input id="productName" required>
+      </div>
+      <div class="field">
+        <label>Categoria</label>
+        <select id="productCategory">
+          <option value="Servicio">Servicio</option>
+          <option value="Producto">Producto</option>
+          <option value="Accesorio">Accesorio</option>
+          <option value="Insumo">Insumo</option>
+        </select>
+      </div>
+      <div class="row two">
+        <div class="field">
+          <label>Precio</label>
+          <input id="productPrice" placeholder="0.00" inputmode="decimal">
+        </div>
+        <div class="field">
+          <label>Stock</label>
+          <input id="productStock" placeholder="0" inputmode="numeric">
+        </div>
+      </div>
+      <button class="btn" id="productSave" type="submit">Guardar</button>
+      <button class="btn secondary" id="productCancel" type="button">Cancelar</button>
+    </form>
+  </div>
+</div></body>
 </html>
+
+

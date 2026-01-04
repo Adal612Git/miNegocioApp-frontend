@@ -4,6 +4,12 @@
   const cartBody = document.querySelector("#tablaCarrito tbody");
   const totalEl = document.getElementById("total");
   const payBtn = document.getElementById("btnCobrar");
+  const backdrop = document.getElementById("backdrop");
+  const closeBtn = document.getElementById("cerrar");
+  const cancelBtn = document.getElementById("cancelar");
+  const confirmBtn = document.getElementById("confirmar");
+  const mTotal = document.getElementById("mTotal");
+  const mRecibido = document.getElementById("mRecibido");
 
   let catalog = [];
   let cart = [];
@@ -97,28 +103,47 @@
     return amount;
   }
 
+  function openPayModal() {
+    if (!backdrop) {
+      handlePay();
+      return;
+    }
+    if (mTotal) mTotal.textContent = formatMoney(computeTotal());
+    if (mRecibido) mRecibido.value = "";
+    backdrop.style.display = "flex";
+  }
+
+  function closePayModal() {
+    if (backdrop) backdrop.style.display = "none";
+  }
+
   async function handlePay() {
     if (!cart.length) {
       alert("Carrito vacio");
       return;
     }
 
-    const input = document.getElementById("mRecibido");
-    const raw = input?.value || prompt("Monto recibido");
+    const raw = mRecibido?.value || prompt("Monto recibido");
     const amountPaid = parseAmount(String(raw || ""));
+    if (amountPaid <= 0) {
+      alert("Ingresa un monto recibido valido");
+      return;
+    }
 
     try {
+      const total = computeTotal();
       const sale = await api.post("/sales", {
         items: cart.map((item) => ({
           product_id: item.productId,
           quantity: item.quantity,
         })),
         amount_paid: amountPaid,
+        total,
       });
 
-      const total = sale?.total ?? computeTotal();
+      const saleTotal = sale?.total ?? total;
       const changeData = await api.post("/sales/change", {
-        total,
+        total: saleTotal,
         monto_recibido: amountPaid,
       });
       const changeAmount = changeData?.cambio ?? 0;
@@ -131,6 +156,7 @@
 
       cart = [];
       renderCart();
+      closePayModal();
     } catch (err) {
       if (err?.status === 409) {
         alert("Stock insuficiente");
@@ -150,7 +176,13 @@
     }
   }
 
-  payBtn?.addEventListener("click", handlePay);
+  payBtn?.addEventListener("click", openPayModal);
+  confirmBtn?.addEventListener("click", handlePay);
+  closeBtn?.addEventListener("click", closePayModal);
+  cancelBtn?.addEventListener("click", closePayModal);
+  backdrop?.addEventListener("click", (event) => {
+    if (event.target === backdrop) closePayModal();
+  });
 
   loadProducts();
 })();

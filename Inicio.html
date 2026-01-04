@@ -22,7 +22,7 @@
     <div class="side-user">
       <div class="avatar">M</div>
       <div>
-        <div class="name">Nombre</div>
+        <div class="name">Usuario</div>
         <div class="meta">Administrador - Negocio Demo</div>
       </div>
     </div>
@@ -45,7 +45,18 @@
       </div>
       <div class="top-actions">
         <div class="pill"><i class="fa-solid fa-calendar-day"></i> Hoy</div>
-        <div class="pill"><i class="fa-solid fa-bell"></i> 2</div>
+        <div class="notifications">
+          <button class="pill" id="notificationsButton" type="button">
+            <i class="fa-solid fa-bell"></i> <span id="notificationsCount">2</span>
+          </button>
+          <div class="notifications-panel" id="notificationsPanel" aria-hidden="true">
+            <div class="notifications-head">Notificaciones</div>
+            <ul class="notifications-list" id="notificationsList">
+              <li>Pago recibido de Cliente A</li>
+              <li>Cita programada para hoy 16:00</li>
+            </ul>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -53,8 +64,8 @@
       <section class="card">
         <h3>Ingresos del día</h3>
         <div class="kpi">
-          <div class="value">$ 1,250</div>
-          <div class="tag">+12% vs ayer</div>
+          <div class="value" id="ingresosDia">$ 0</div>
+          <div class="tag" id="ingresosTag">Hoy</div>
         </div>
         <div class="bars" aria-label="Ventas por hora (demo)">
           <div class="bar"><div style="height:40%"></div></div>
@@ -99,21 +110,73 @@
   </main>
 </div>
 
+<script src="js/config.js"></script>
+<script src="js/api.client.js"></script>
 <script src="js/ui.js"></script>
 <script>
   (function () {
-    const stored = localStorage.getItem("user");
-    if (!stored) return;
-    try {
-      const user = JSON.parse(stored);
-      if (user && user.name) {
-        const el = document.getElementById("welcome-message");
-        if (el) el.textContent = `Hola, ${user.name}`;
-      }
-    } catch {
-      return;
+    const api = new ApiClient();
+    const name = window.AppUI?.getUserName?.();
+    const el = document.getElementById("welcome-message");
+    if (el && name) {
+      el.textContent = `Hola, ${name}`;
     }
+
+    const ingresosEl = document.getElementById("ingresosDia");
+    const ingresosTag = document.getElementById("ingresosTag");
+
+    function formatMoney(amount) {
+      const value = Number(amount || 0);
+      return value.toLocaleString("es-MX", {
+        style: "currency",
+        currency: "MXN",
+      });
+    }
+
+    function toDateString(date) {
+      return date.toISOString().slice(0, 10);
+    }
+
+    async function loadIngresosDia() {
+      const now = new Date();
+      const start = toDateString(now);
+      const end = toDateString(now);
+      try {
+        const report = await api.get(
+          `/reports/sales?start_date=${start}&end_date=${end}`
+        );
+        const total = report?.total_income || 0;
+        if (ingresosEl) ingresosEl.textContent = formatMoney(total);
+        if (ingresosTag) ingresosTag.textContent = "Hoy";
+      } catch (err) {
+        if (ingresosEl) ingresosEl.textContent = formatMoney(0);
+        if (ingresosTag) ingresosTag.textContent = "Sin datos";
+      }
+    }
+
+    const notificationsButton = document.getElementById("notificationsButton");
+    const notificationsPanel = document.getElementById("notificationsPanel");
+    const notificationsCount = document.getElementById("notificationsCount");
+    if (notificationsButton && notificationsPanel) {
+      notificationsButton.addEventListener("click", () => {
+        const isOpen = notificationsPanel.getAttribute("aria-hidden") === "false";
+        notificationsPanel.setAttribute("aria-hidden", isOpen ? "true" : "false");
+      });
+      document.addEventListener("click", (event) => {
+        if (!notificationsPanel.contains(event.target) && !notificationsButton.contains(event.target)) {
+          notificationsPanel.setAttribute("aria-hidden", "true");
+        }
+      });
+      if (notificationsCount) {
+        const total = notificationsPanel.querySelectorAll("li").length;
+        notificationsCount.textContent = String(total);
+      }
+    }
+
+    loadIngresosDia();
   })();
 </script>
 </body>
 </html>
+
+
