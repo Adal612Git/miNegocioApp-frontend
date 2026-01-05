@@ -1,4 +1,5 @@
 (() => {
+  console.log(" Frontend conectado a la API en Railway");
   const api = new ApiClient();
   const catalogBody = document.querySelector("#tablaCatalogo tbody");
   const cartBody = document.querySelector("#tablaCarrito tbody");
@@ -168,11 +169,17 @@
 
   async function loadProducts() {
     try {
-      const data = await api.get("/products");
+      console.log("Cargando catalogo de caja...");
+      const data = await api.get("/inventory");
       catalog = Array.isArray(data) ? data : [];
       renderCatalog();
     } catch (err) {
-      alert(window.getErrorMessage(err, "No se pudieron cargar productos"));
+      const message = window.getErrorMessage(err, "No se pudieron cargar productos");
+      if (window.AppUI?.showToast) {
+        window.AppUI.showToast(message, "error");
+      } else {
+        alert(message);
+      }
     }
   }
 

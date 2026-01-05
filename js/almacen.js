@@ -1,4 +1,5 @@
 (() => {
+  console.log(" Frontend conectado a la API en Railway");
   const api = new ApiClient();
   const tableBody = document.querySelector("#tablaItems tbody");
   const titleEl = document.getElementById("tituloLista");
@@ -223,12 +224,23 @@
 
   async function loadProducts() {
     try {
+      console.log("Cargando items de almacen...");
       const data = await api.get("/products");
       products = Array.isArray(data) ? data : [];
       render();
     } catch (err) {
-      alert(window.getErrorMessage(err, "No se pudieron cargar productos"));
+      const message = window.getErrorMessage(err, "No se pudieron cargar productos");
+      if (window.AppUI?.showToast) {
+        window.AppUI.showToast(message, "error");
+      } else {
+        alert(message);
+      }
     }
+  }
+
+  function loadItems() {
+    if (tableBody) tableBody.innerHTML = "";
+    return loadProducts();
   }
 
   tabServicios?.addEventListener("click", () => {
@@ -236,7 +248,7 @@
     tabServicios.classList.add("active");
     tabArticulos?.classList.remove("active");
     setCategoryOptions();
-    render();
+    loadItems();
   });
 
   tabArticulos?.addEventListener("click", () => {
@@ -244,7 +256,7 @@
     tabArticulos.classList.add("active");
     tabServicios?.classList.remove("active");
     setCategoryOptions();
-    render();
+    loadItems();
   });
 
   addBtn?.addEventListener("click", () => openModal());
@@ -257,5 +269,5 @@
   priceInput?.addEventListener("input", enforcePriceFormat);
 
   setCategoryOptions();
-  loadProducts();
+  loadItems();
 })();

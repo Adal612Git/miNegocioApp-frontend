@@ -1,7 +1,13 @@
 class ApiClient {
   constructor(baseUrl) {
-    this.baseUrl =
-      baseUrl || window.API_BASE_URL || "https://api.lotosproductions.com/api";
+    let resolved =
+      baseUrl || window.API_BASE_URL || "https://api.lotosproductions.com";
+    resolved = String(resolved || "").replace(/\/+$/, "");
+    if (!resolved.endsWith("/api")) {
+      resolved = `${resolved}/api`;
+    }
+    this.baseUrl = resolved;
+    console.log(" Frontend conectado a la API en Railway");
   }
 
   getToken() {
