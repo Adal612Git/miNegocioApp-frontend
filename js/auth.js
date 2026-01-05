@@ -24,6 +24,7 @@
   async function handleLogin(event) {
     event.preventDefault();
     const email = getValue("email");
+    const phone = document.getElementById("phone").value;
     const password = getValue("password");
 
     try {
@@ -63,6 +64,7 @@
         business_name: businessName,
         name,
         email,
+        phone,
         password,
       });
       if (data?.token) {
