@@ -19,7 +19,9 @@
   let products = [];
   let editingId = null;
 
-  const CATEGORY_OPTIONS = ["Servicio", "Producto", "Accesorio", "Insumo"];
+  const SERVICE_CATEGORIES = ["Corte", "Color", "Tratamiento", "Spa", "Otro"];
+  const PRODUCT_CATEGORIES = ["Producto", "Accesorio", "Insumo"];
+  const CATEGORY_OPTIONS = [...SERVICE_CATEGORIES, ...PRODUCT_CATEGORIES];
 
   function formatMoney(amount) {
     const value = Number(amount || 0);
@@ -35,7 +37,10 @@
 
   function isService(product) {
     const category = normalizeCategory(product.category);
-    return category.includes("servicio");
+    return (
+      category.includes("servicio") ||
+      SERVICE_CATEGORIES.some((item) => item.toLowerCase() === category)
+    );
   }
 
   function getFilteredProducts() {
@@ -102,21 +107,33 @@
     return match || fallback;
   }
 
+  function setCategoryOptions(selected) {
+    if (!categorySelect) return;
+    const options = mode === "servicios" ? SERVICE_CATEGORIES : PRODUCT_CATEGORIES;
+    categorySelect.innerHTML = "";
+    options.forEach((option) => {
+      const item = document.createElement("option");
+      item.value = option;
+      item.textContent = option;
+      categorySelect.appendChild(item);
+    });
+    if (selected && options.includes(selected)) {
+      categorySelect.value = selected;
+    }
+  }
+
   function openModal(product) {
     if (!modal || !form) return;
-    const defaultCategory = mode === "servicios" ? "Servicio" : "Producto";
+    const defaultCategory = mode === "servicios" ? "Corte" : "Producto";
     const isEdit = Boolean(product);
     editingId = isEdit ? product._id : null;
     if (modalTitle) {
       modalTitle.textContent = isEdit ? "Editar producto" : "Nuevo producto";
     }
     if (nameInput) nameInput.value = product?.name || "";
-    if (categorySelect) {
-      categorySelect.value = normalizeCategoryChoice(
-        product?.category,
-        defaultCategory
-      );
-    }
+    setCategoryOptions(
+      normalizeCategoryChoice(product?.category, defaultCategory)
+    );
     if (priceInput) priceInput.value = product?.price ?? "";
     if (stockInput) stockInput.value = product?.stock ?? "";
     modal.style.display = "flex";
@@ -131,7 +148,7 @@
 
   async function handleSubmit(event) {
     event?.preventDefault?.();
-    const defaultCategory = mode === "servicios" ? "Servicio" : "Producto";
+    const defaultCategory = mode === "servicios" ? "Corte" : "Producto";
     const name = nameInput?.value?.trim();
     if (!name) {
       alert("Nombre requerido");
@@ -218,6 +235,7 @@
     mode = "servicios";
     tabServicios.classList.add("active");
     tabArticulos?.classList.remove("active");
+    setCategoryOptions();
     render();
   });
 
@@ -225,6 +243,7 @@
     mode = "articulos";
     tabArticulos.classList.add("active");
     tabServicios?.classList.remove("active");
+    setCategoryOptions();
     render();
   });
 
@@ -237,5 +256,6 @@
   });
   priceInput?.addEventListener("input", enforcePriceFormat);
 
+  setCategoryOptions();
   loadProducts();
 })();

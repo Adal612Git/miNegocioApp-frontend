@@ -47,14 +47,11 @@
         <div class="pill"><i class="fa-solid fa-calendar-day"></i> Hoy</div>
         <div class="notifications">
           <button class="pill" id="notificationsButton" type="button">
-            <i class="fa-solid fa-bell"></i> <span id="notificationsCount">2</span>
+            <i class="fa-solid fa-bell"></i> <span id="notificationsCount">0</span>
           </button>
           <div class="notifications-panel" id="notificationsPanel" aria-hidden="true">
             <div class="notifications-head">Notificaciones</div>
-            <ul class="notifications-list" id="notificationsList">
-              <li>Pago recibido de Cliente A</li>
-              <li>Cita programada para hoy 16:00</li>
-            </ul>
+            <ul class="notifications-list" id="notificationsList"></ul>
           </div>
         </div>
       </div>
@@ -83,11 +80,7 @@
         <h3>Hoy</h3>
         <table class="table">
           <thead><tr><th>Hora</th><th>Evento</th></tr></thead>
-          <tbody>
-            <tr><td>10:00</td><td>Cita: Cliente A</td></tr>
-            <tr><td>12:30</td><td>Venta registrada</td></tr>
-            <tr><td>16:00</td><td>Cita: Cliente B</td></tr>
-          </tbody>
+          <tbody id="todayAppointments"></tbody>
         </table>
 
         <div class="actions" style="margin-top:12px">
@@ -124,6 +117,11 @@
 
     const ingresosEl = document.getElementById("ingresosDia");
     const ingresosTag = document.getElementById("ingresosTag");
+    const todayBody = document.getElementById("todayAppointments");
+    const notificationsButton = document.getElementById("notificationsButton");
+    const notificationsPanel = document.getElementById("notificationsPanel");
+    const notificationsCount = document.getElementById("notificationsCount");
+    const notificationsList = document.getElementById("notificationsList");
 
     function formatMoney(amount) {
       const value = Number(amount || 0);
@@ -135,6 +133,43 @@
 
     function toDateString(date) {
       return date.toISOString().slice(0, 10);
+    }
+
+    function setNotifications(items) {
+      if (!notificationsList) return;
+      notificationsList.innerHTML = "";
+      if (!items.length) {
+        const li = document.createElement("li");
+        li.textContent = "Sin notificaciones";
+        notificationsList.appendChild(li);
+      } else {
+        items.forEach((item) => {
+          const li = document.createElement("li");
+          li.textContent = item.message || "Notificacion";
+          notificationsList.appendChild(li);
+        });
+      }
+      if (notificationsCount) {
+        notificationsCount.textContent = String(items.length);
+      }
+    }
+
+    function setTodayAppointments(list) {
+      if (!todayBody) return;
+      todayBody.innerHTML = "";
+      if (!list.length) {
+        const tr = document.createElement("tr");
+        tr.innerHTML = "<td colspan="2">Sin citas para hoy</td>";
+        todayBody.appendChild(tr);
+        return;
+      }
+      list.forEach((item) => {
+        const tr = document.createElement("tr");
+        const time = item.time || "";
+        const label = item.notes || item.title || "Cita";
+        tr.innerHTML = `<td>${time}</td><td>${label}</td>`;
+        todayBody.appendChild(tr);
+      });
     }
 
     async function loadIngresosDia() {
@@ -151,12 +186,43 @@
       } catch (err) {
         if (ingresosEl) ingresosEl.textContent = formatMoney(0);
         if (ingresosTag) ingresosTag.textContent = "Sin datos";
+        if (window.AppUI?.showToast) {
+          window.AppUI.showToast("No se pudieron cargar ingresos", "error");
+        }
       }
     }
 
-    const notificationsButton = document.getElementById("notificationsButton");
-    const notificationsPanel = document.getElementById("notificationsPanel");
-    const notificationsCount = document.getElementById("notificationsCount");
+    async function loadTodayAppointments() {
+      const now = new Date();
+      const start = toDateString(now);
+      const end = toDateString(now);
+      try {
+        const data = await api.get(
+          `/appointments?start_date=${start}&end_date=${end}`
+        );
+        const list = Array.isArray(data) ? data : [];
+        setTodayAppointments(list);
+      } catch (err) {
+        setTodayAppointments([]);
+        if (window.AppUI?.showToast) {
+          window.AppUI.showToast("No se pudieron cargar las citas", "error");
+        }
+      }
+    }
+
+    async function loadNotifications() {
+      try {
+        const data = await api.get("/notifications?limit=6");
+        const list = Array.isArray(data) ? data : data?.items || [];
+        setNotifications(list);
+      } catch (err) {
+        setNotifications([]);
+        if (window.AppUI?.showToast) {
+          window.AppUI.showToast("No se pudieron cargar notificaciones", "error");
+        }
+      }
+    }
+
     if (notificationsButton && notificationsPanel) {
       notificationsButton.addEventListener("click", () => {
         const isOpen = notificationsPanel.getAttribute("aria-hidden") === "false";
@@ -167,13 +233,11 @@
           notificationsPanel.setAttribute("aria-hidden", "true");
         }
       });
-      if (notificationsCount) {
-        const total = notificationsPanel.querySelectorAll("li").length;
-        notificationsCount.textContent = String(total);
-      }
     }
 
     loadIngresosDia();
+    loadTodayAppointments();
+    loadNotifications();
   })();
 </script>
 </body>

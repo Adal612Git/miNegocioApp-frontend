@@ -57,6 +57,16 @@ input, select{
   background:#fbfdff;
 }
 input:focus, select:focus{border-color:#b8d3ff; box-shadow:0 0 0 4px rgba(45,127,249,.12)}
+.field.error input,
+.field.error select{
+  border-color:#b91c1c;
+  box-shadow:0 0 0 4px rgba(185,28,28,.12);
+}
+.field-error{
+  color:#b91c1c;
+  font-size:12px;
+  min-height:14px;
+}
 .btn{
   width:100%;
   border:none;
@@ -89,6 +99,26 @@ input:focus, select:focus{border-color:#b8d3ff; box-shadow:0 0 0 4px rgba(45,127
   margin-top:10px;
   text-align:center;
 }
+
+.toast-container{
+  position:fixed;
+  right:16px;
+  bottom:16px;
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+  z-index:9999;
+}
+.toast{
+  background:#111827;
+  color:white;
+  padding:10px 12px;
+  border-radius:10px;
+  box-shadow:var(--shadow);
+  font-size:13px;
+  max-width:320px;
+}
+.toast.error{background:#991b1b}
 
 /* ===== APP SHELL ===== */
 .app{

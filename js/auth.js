@@ -12,6 +12,39 @@
     el.textContent = message || "";
   }
 
+  function clearFieldErrors() {
+    document.querySelectorAll(".field.error").forEach((field) => {
+      field.classList.remove("error");
+    });
+    document.querySelectorAll(".field-error").forEach((el) => {
+      el.textContent = "";
+    });
+  }
+
+  function setFieldError(fieldId, message) {
+    if (!fieldId) return;
+    const input = document.getElementById(fieldId);
+    if (!input) return;
+    const field = input.closest(".field");
+    if (field) field.classList.add("error");
+    const errorEl = document.querySelector(`[data-error-for="${fieldId}"]`);
+    if (errorEl) errorEl.textContent = message || "Dato invalido";
+  }
+
+  function applyServerErrors(errors) {
+    if (!Array.isArray(errors)) return false;
+    let applied = false;
+    errors.forEach((issue) => {
+      const path = Array.isArray(issue?.path) ? issue.path[0] : issue?.path;
+      const message = issue?.message || "Dato invalido";
+      if (path) {
+        setFieldError(String(path), message);
+        applied = true;
+      }
+    });
+    return applied;
+  }
+
   function persistUserFromResponse(data, fallbackName) {
     const user =
       data?.user || data?.data?.user || data?.profile || data?.account || null;
@@ -45,6 +78,7 @@
 
   async function handleRegister(event) {
     event.preventDefault();
+    clearFieldErrors();
     const businessName =
       getValue("business_name") || getValue("businessName") || getValue("negocio");
     const name = getValue("name") || getValue("full_name") || getValue("nombre");
@@ -54,17 +88,17 @@
     const passwordConfirm = getValue("password_confirm");
 
     if (phone && phone.replace(/\D/g, "").length < 10) {
-      alert("El telefono debe tener al menos 10 digitos");
+      setFieldError("phone", "El telefono debe tener al menos 10 digitos");
       return;
     }
 
     if (password && password.length < 8) {
-      alert("La contrasena debe tener al menos 8 caracteres");
+      setFieldError("password", "La contrasena debe tener al menos 8 caracteres");
       return;
     }
 
     if (passwordConfirm && password !== passwordConfirm) {
-      alert("Las contrasenas no coinciden");
+      setFieldError("password_confirm", "Las contrasenas no coinciden");
       return;
     }
 
@@ -84,8 +118,15 @@
       }
     } catch (err) {
       const message = window.getErrorMessage(err, "No se pudo registrar");
-      setRegisterError(message);
-      alert(message);
+      const hasFieldErrors = applyServerErrors(err?.data?.errors);
+      if (!hasFieldErrors) {
+        setRegisterError(message);
+      }
+      if (window.AppUI?.showToast) {
+        window.AppUI.showToast(message, "error");
+      } else {
+        alert(message);
+      }
     }
   }
 

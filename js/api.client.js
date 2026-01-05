@@ -17,10 +17,23 @@ class ApiClient {
       headers.set("Authorization", `Bearer ${token}`);
     }
 
-    const response = await fetch(`${this.baseUrl}${path}`, {
-      ...options,
-      headers,
-    });
+    let response = null;
+    try {
+      response = await fetch(`${this.baseUrl}${path}`, {
+        ...options,
+        headers,
+      });
+    } catch (err) {
+      const message = "Error de red. Verifica tu conexion.";
+      if (window.AppUI?.showToast) {
+        window.AppUI.showToast(message, "error");
+      } else {
+        alert(message);
+      }
+      const error = new Error(message);
+      error.status = 0;
+      throw error;
+    }
 
     if (response.status === 401) {
       localStorage.removeItem("token");

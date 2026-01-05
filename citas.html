@@ -7,6 +7,7 @@
 <title>MiNegocioApp | Citas</title>
 <link rel="stylesheet" href="assets/app.css"/>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
 </head>
 <body>
 
@@ -70,10 +71,37 @@
   </main>
 </div>
 
+<div class="modal-backdrop" id="appointmentBackdrop">
+  <div class="modal">
+    <div class="modal-head">
+      <h3 style="margin:0">Nueva cita</h3>
+      <button class="close" id="appointmentClose" type="button">X</button>
+    </div>
+    <form id="appointmentForm">
+      <div class="field">
+        <label>Fecha</label>
+        <input id="appointmentDate" placeholder="YYYY-MM-DD" required>
+      </div>
+      <div class="field">
+        <label>Hora</label>
+        <input id="appointmentTime" placeholder="HH:mm" required>
+      </div>
+      <div class="field">
+        <label>Notas</label>
+        <input id="appointmentNotes" placeholder="Notas (opcional)">
+      </div>
+      <button class="btn" type="submit">Guardar</button>
+      <button class="btn secondary" id="appointmentCancel" type="button">Cancelar</button>
+    </form>
+  </div>
+</div>
+
+
 <script src="js/config.js"></script>
 <script src="js/api.client.js"></script>
 <script src="js/ui.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
 <script src="js/citas.js"></script>
 </body>
 </html>

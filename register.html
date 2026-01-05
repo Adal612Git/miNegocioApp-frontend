@@ -27,16 +27,19 @@
         <div class="field">
           <label>Nombre</label>
           <input id="name" placeholder="Nombre">
+          <div class="field-error" data-error-for="name"></div>
         </div>
         <div class="field">
           <label>Teléfono</label>
           <input id="phone" name="phone" type="tel" placeholder="33 0000 0000" maxlength="10" required inputmode="numeric">
+          <div class="field-error" data-error-for="phone"></div>
         </div>
       </div>
 
       <div class="field">
         <label>Correo</label>
         <input id="email" type="email" placeholder="correo@ejemplo.com">
+        <div class="field-error" data-error-for="email"></div>
       </div>
 
       <div class="field">

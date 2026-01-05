@@ -2,8 +2,17 @@
   const api = new ApiClient();
   const tableBody = document.querySelector("#tablaCitas tbody");
   const calendarEl = document.getElementById("calendar");
+  const backdrop = document.getElementById("appointmentBackdrop");
+  const form = document.getElementById("appointmentForm");
+  const closeBtn = document.getElementById("appointmentClose");
+  const cancelBtn = document.getElementById("appointmentCancel");
+  const dateInput = document.getElementById("appointmentDate");
+  const timeInput = document.getElementById("appointmentTime");
+  const notesInput = document.getElementById("appointmentNotes");
 
   let calendar = null;
+  let datePicker = null;
+  let timePicker = null;
 
   function formatDate(date) {
     return date.toLocaleDateString("es-MX");
@@ -43,6 +52,22 @@
       events: [],
     });
     calendar.render();
+  }
+
+  function initPickers() {
+    if (window.flatpickr && dateInput) {
+      datePicker = window.flatpickr(dateInput, {
+        dateFormat: "Y-m-d",
+      });
+    }
+    if (window.flatpickr && timeInput) {
+      timePicker = window.flatpickr(timeInput, {
+        enableTime: true,
+        noCalendar: true,
+        dateFormat: "H:i",
+        time_24hr: true,
+      });
+    }
   }
 
   function updateCalendar(list) {
@@ -97,41 +122,86 @@
       renderAppointments(list);
       updateCalendar(list);
     } catch (err) {
-      alert(window.getErrorMessage(err, "No se pudieron cargar las citas"));
+      const message = window.getErrorMessage(err, "No se pudieron cargar las citas");
+      if (window.AppUI?.showToast) {
+        window.AppUI.showToast(message, "error");
+      } else {
+        alert(message);
+      }
     }
+  }
+
+  function openModal() {
+    if (!backdrop) return;
+    if (datePicker) datePicker.setDate(new Date(), true);
+    if (timePicker) timePicker.setDate(new Date(), true);
+    if (notesInput) notesInput.value = "";
+    backdrop.style.display = "flex";
+  }
+
+  function closeModal() {
+    if (!backdrop) return;
+    backdrop.style.display = "none";
   }
 
   async function handleCreate(event) {
     event?.preventDefault?.();
 
-    const date = prompt("Fecha (YYYY-MM-DD)");
-    const time = prompt("Hora (HH:mm)");
-    const notes = prompt("Notas (opcional)") || "";
+    const date = dateInput?.value?.trim();
+    const time = timeInput?.value?.trim();
+    const notes = notesInput?.value?.trim() || "";
 
     if (!date || !time) {
-      alert("Completa los campos requeridos");
+      const msg = "Completa los campos requeridos";
+      if (window.AppUI?.showToast) {
+        window.AppUI.showToast(msg, "error");
+      } else {
+        alert(msg);
+      }
       return;
     }
 
     try {
       await api.post("/appointments", {
-        date: date.trim(),
-        time: time.trim(),
+        date,
+        time,
         notes,
       });
       await loadAppointments();
-      alert("Cita creada");
+      if (window.AppUI?.showToast) {
+        window.AppUI.showToast("Cita creada");
+      } else {
+        alert("Cita creada");
+      }
+      closeModal();
     } catch (err) {
       if (err?.status === 409) {
-        alert("Horario ocupado");
+        const msg = "Horario ocupado";
+        if (window.AppUI?.showToast) {
+          window.AppUI.showToast(msg, "error");
+        } else {
+          alert(msg);
+        }
         return;
       }
-      alert(window.getErrorMessage(err, "No se pudo crear la cita"));
+      const message = window.getErrorMessage(err, "No se pudo crear la cita");
+      if (window.AppUI?.showToast) {
+        window.AppUI.showToast(message, "error");
+      } else {
+        alert(message);
+      }
     }
   }
 
-  document.getElementById("btnNuevaCita")?.addEventListener("click", handleCreate);
+  document.getElementById("btnNuevaCita")?.addEventListener("click", openModal);
+  form?.addEventListener("submit", handleCreate);
+  closeBtn?.addEventListener("click", closeModal);
+  cancelBtn?.addEventListener("click", closeModal);
+  backdrop?.addEventListener("click", (event) => {
+    if (event.target === backdrop) closeModal();
+  });
 
   initCalendar();
+  initPickers();
   loadAppointments();
 })();
