@@ -24,7 +24,6 @@
   async function handleLogin(event) {
     event.preventDefault();
     const email = getValue("email");
-    const phone = document.getElementById("phone").value;
     const password = getValue("password");
 
     try {
@@ -49,9 +48,20 @@
     const businessName =
       getValue("business_name") || getValue("businessName") || getValue("negocio");
     const name = getValue("name") || getValue("full_name") || getValue("nombre");
+    const phone = getValue("phone");
     const email = getValue("email");
     const password = getValue("password");
     const passwordConfirm = getValue("password_confirm");
+
+    if (phone && phone.replace(/\D/g, "").length < 10) {
+      alert("El telefono debe tener al menos 10 digitos");
+      return;
+    }
+
+    if (password && password.length < 8) {
+      alert("La contrasena debe tener al menos 8 caracteres");
+      return;
+    }
 
     if (passwordConfirm && password !== passwordConfirm) {
       alert("Las contrasenas no coinciden");
