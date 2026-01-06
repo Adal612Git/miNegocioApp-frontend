@@ -80,37 +80,50 @@
   </main>
 </div>
 
-<!-- Modal de cobro (demo) -->
-<div class="modal-backdrop" id="backdrop">
-  <div class="modal">
-    <div class="modal-head">
-      <h3 style="margin:0">Cobro</h3>
-      <button class="close" id="cerrar">?</button>
+<!-- Modal de cobro con teclado -->
+<div class="modal-backdrop" id="modalCobro">
+  <div class="pos-modal">
+    <div class="pos-header">
+      <h3>Cobro</h3>
+      <button class="close-pos" id="posClose" type="button">X</button>
     </div>
 
-    <div class="grid-two" style="margin-top:10px">
-      <div class="card" style="box-shadow:none; border:1px dashed var(--line)">
-        <div class="muted" style="font-size:13px">Total</div>
-        <div style="font-size:26px; font-weight:900" id="mTotal">$ 0</div>
-        <div class="field" style="margin:10px 0 0">
-          <label>Monto recibido</label>
-          <input id="mRecibido" placeholder="0">
-        </div>
-        <div class="muted" style="font-size:13px; margin-top:8px">Cambio</div>
-        <div style="font-size:20px; font-weight:900" id="mCambio">$ 0</div>
+    <div class="pos-summary">
+      <div class="row-pos">
+        <span>Monto recibido</span>
+        <strong id="posMontoRecibido">$0.00</strong>
       </div>
-
-      <div>
-        <div class="keypad" id="keypad">
-          <button>1</button><button>2</button><button>3</button>
-          <button>4</button><button>5</button><button>6</button>
-          <button>7</button><button>8</button><button>9</button>
-          <button>C</button><button>0</button><button>?</button>
-        </div>
-        <button class="btn" id="confirmar" style="margin-top:10px">Confirmar pago</button>
-        <button class="btn secondary" id="cancelar" style="margin-top:10px">Cancelar</button>
+      <div class="row-pos">
+        <span>Cambio</span>
+        <strong id="posCambio">$0.00</strong>
+      </div>
+      <div class="row-pos total">
+        <span>Total</span>
+        <strong id="posTotal">$0.00</strong>
       </div>
     </div>
+
+    <div class="pos-keypad" id="posKeypad">
+      <button data-key="1">1</button>
+      <button data-key="2">2</button>
+      <button data-key="3">3</button>
+      <button data-key="4">4</button>
+      <button data-key="5">5</button>
+      <button data-key="6">6</button>
+      <button data-key="7">7</button>
+      <button data-key="8">8</button>
+      <button data-key="9">9</button>
+      <button data-action="clear">C</button>
+      <button data-key="0">0</button>
+      <button data-action="back">Del</button>
+    </div>
+
+    <button class="btn-sm primary" id="posConfirm" type="button">
+      Cobrar
+    </button>
+    <button class="btn-sm" id="posCancel" type="button" style="margin-top:8px">
+      Cancelar
+    </button>
   </div>
 </div>
 
@@ -118,64 +131,6 @@
 <script src="js/api.client.js"></script>
 <script src="js/ui.js"></script>
 <script src="js/caja.js"></script>
-<!-- ================= MODAL CALCULADORA POS ================= -->
-<div class="modal-backdrop" id="modalCobro">
-
-  <div class="pos-modal">
-
-    <div class="pos-header">
-      <h3>Carrito</h3>
-      <button class="close-pos" onclick="cerrarCobro()">?</button>
-    </div>
-
-    <div class="pos-item">
-      <div>
-        <strong>Shampoo</strong>
-        <div class="muted">x3 · $150.00</div>
-      </div>
-      <strong>$450.00</strong>
-    </div>
-
-    <div class="pos-summary">
-      <div class="row-pos">
-        <span>Monto recibido</span>
-        <strong id="montoRecibido">$0.00</strong>
-      </div>
-      <div class="row-pos">
-        <span>Cambio</span>
-        <strong id="cambio">$0.00</strong>
-      </div>
-      <div class="row-pos total">
-        <span>Total</span>
-        <strong>$450.00</strong>
-      </div>
-    </div>
-
-    <div class="pos-keypad">
-      <button onclick="agregarNumero('1')">1</button>
-      <button onclick="agregarNumero('2')">2</button>
-      <button onclick="agregarNumero('3')">3</button>
-
-      <button onclick="agregarNumero('4')">4</button>
-      <button onclick="agregarNumero('5')">5</button>
-      <button onclick="agregarNumero('6')">6</button>
-
-      <button onclick="agregarNumero('7')">7</button>
-      <button onclick="agregarNumero('8')">8</button>
-      <button onclick="agregarNumero('9')">9</button>
-
-      <button onclick="limpiar()">C</button>
-      <button onclick="agregarNumero('0')">0</button>
-      <button onclick="borrar()">?</button>
-    </div>
-
-<button class="btn-sm primary" onclick="abrirCobro()">
-  Cobrar
-</button>
-
-  </div>
-</div>
-<!-- ========================================================= -->
 </body>
 </html>
 

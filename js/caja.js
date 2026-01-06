@@ -5,15 +5,18 @@
   const cartBody = document.querySelector("#tablaCarrito tbody");
   const totalEl = document.getElementById("total");
   const payBtn = document.getElementById("btnCobrar");
-  const backdrop = document.getElementById("backdrop");
-  const closeBtn = document.getElementById("cerrar");
-  const cancelBtn = document.getElementById("cancelar");
-  const confirmBtn = document.getElementById("confirmar");
-  const mTotal = document.getElementById("mTotal");
-  const mRecibido = document.getElementById("mRecibido");
+  const payModal = document.getElementById("modalCobro");
+  const posClose = document.getElementById("posClose");
+  const posCancel = document.getElementById("posCancel");
+  const posConfirm = document.getElementById("posConfirm");
+  const posTotal = document.getElementById("posTotal");
+  const posAmount = document.getElementById("posMontoRecibido");
+  const posChange = document.getElementById("posCambio");
+  const posKeypad = document.getElementById("posKeypad");
 
   let catalog = [];
   let cart = [];
+  let amountInput = "";
 
   function formatMoney(amount) {
     const value = Number(amount || 0);
@@ -104,28 +107,52 @@
     return amount;
   }
 
-  function openPayModal() {
-    if (!backdrop) {
-      handlePay();
-      return;
+  function updatePosDisplay() {
+    const total = computeTotal();
+    const amount = parseAmount(amountInput);
+    if (posTotal) posTotal.textContent = formatMoney(total);
+    if (posAmount) posAmount.textContent = formatMoney(amount);
+    if (posChange) {
+      posChange.textContent = formatMoney(Math.max(amount - total, 0));
     }
-    if (mTotal) mTotal.textContent = formatMoney(computeTotal());
-    if (mRecibido) mRecibido.value = "";
-    backdrop.style.display = "flex";
   }
 
-  function closePayModal() {
-    if (backdrop) backdrop.style.display = "none";
+  function appendDigit(digit) {
+    if (!digit) return;
+    if (amountInput === "0") {
+      amountInput = digit;
+    } else {
+      amountInput += digit;
+    }
+    updatePosDisplay();
   }
 
-  async function handlePay() {
+  function clearAmount() {
+    amountInput = "";
+    updatePosDisplay();
+  }
+
+  function removeLastDigit() {
+    amountInput = amountInput.slice(0, -1);
+    updatePosDisplay();
+  }
+
+  function openPayModal() {
     if (!cart.length) {
       alert("Carrito vacio");
       return;
     }
+    amountInput = "";
+    updatePosDisplay();
+    if (payModal) payModal.style.display = "flex";
+  }
 
-    const raw = mRecibido?.value || prompt("Monto recibido");
-    const amountPaid = parseAmount(String(raw || ""));
+  function closePayModal() {
+    if (payModal) payModal.style.display = "none";
+  }
+
+  async function handlePay() {
+    const amountPaid = parseAmount(amountInput);
     if (amountPaid <= 0) {
       alert("Ingresa un monto recibido valido");
       return;
@@ -148,9 +175,9 @@
         monto_recibido: amountPaid,
       });
       const changeAmount = changeData?.cambio ?? 0;
-      const changeEl = document.getElementById("mCambio");
-      if (changeEl) {
-        changeEl.textContent = formatMoney(changeAmount);
+      if (posChange) posChange.textContent = formatMoney(changeAmount);
+      if (window.AppUI?.showToast) {
+        window.AppUI.showToast(`Cambio: ${formatMoney(changeAmount)}`);
       } else {
         alert(`Cambio: ${formatMoney(changeAmount)}`);
       }
@@ -184,11 +211,28 @@
   }
 
   payBtn?.addEventListener("click", openPayModal);
-  confirmBtn?.addEventListener("click", handlePay);
-  closeBtn?.addEventListener("click", closePayModal);
-  cancelBtn?.addEventListener("click", closePayModal);
-  backdrop?.addEventListener("click", (event) => {
-    if (event.target === backdrop) closePayModal();
+  posConfirm?.addEventListener("click", handlePay);
+  posClose?.addEventListener("click", closePayModal);
+  posCancel?.addEventListener("click", closePayModal);
+  posKeypad?.addEventListener("click", (event) => {
+    const button = event.target?.closest?.("button");
+    if (!button) return;
+    const digit = button.getAttribute("data-key");
+    const action = button.getAttribute("data-action");
+    if (digit) {
+      appendDigit(digit);
+      return;
+    }
+    if (action === "clear") {
+      clearAmount();
+      return;
+    }
+    if (action === "back") {
+      removeLastDigit();
+    }
+  });
+  payModal?.addEventListener("click", (event) => {
+    if (event.target === payModal) closePayModal();
   });
 
   loadProducts();

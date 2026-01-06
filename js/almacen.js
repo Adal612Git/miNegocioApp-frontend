@@ -60,7 +60,11 @@
     const list = getFilteredProducts();
     list.forEach((product) => {
       const tr = document.createElement("tr");
-      const stock = Number.isFinite(product.stock) ? product.stock : "-";
+      const stock = isService(product)
+        ? "-"
+        : Number.isFinite(product.stock)
+        ? product.stock
+        : "-";
       tr.innerHTML = `
         <td>${product.name || ""}</td>
         <td>${product.category || "-"}</td>
@@ -123,13 +127,26 @@
     }
   }
 
+  function setStockInputState() {
+    if (!stockInput) return;
+    const isServiceMode = mode === "servicios";
+    stockInput.disabled = isServiceMode;
+    if (isServiceMode) {
+      stockInput.value = "";
+      stockInput.placeholder = "No aplica";
+      return;
+    }
+    stockInput.placeholder = "0";
+  }
+
   function openModal(product) {
     if (!modal || !form) return;
     const defaultCategory = mode === "servicios" ? "Corte" : "Producto";
     const isEdit = Boolean(product);
     editingId = isEdit ? product._id : null;
     if (modalTitle) {
-      modalTitle.textContent = isEdit ? "Editar producto" : "Nuevo producto";
+      const label = mode === "servicios" ? "servicio" : "producto";
+      modalTitle.textContent = isEdit ? `Editar ${label}` : `Nuevo ${label}`;
     }
     if (nameInput) nameInput.value = product?.name || "";
     setCategoryOptions(
@@ -137,6 +154,7 @@
     );
     if (priceInput) priceInput.value = product?.price ?? "";
     if (stockInput) stockInput.value = product?.stock ?? "";
+    setStockInputState();
     modal.style.display = "flex";
   }
 
@@ -161,11 +179,10 @@
       defaultCategory
     );
     const price = toNumber(priceInput?.value, 0);
-    const stockDefault = mode === "servicios" ? 0 : 1;
-    const stock = Math.max(
-      0,
-      Math.round(toNumber(stockInput?.value, stockDefault))
-    );
+    const stock =
+      mode === "servicios"
+        ? 0
+        : Math.max(0, Math.round(toNumber(stockInput?.value, 1)));
 
     try {
       if (editingId) {
@@ -248,6 +265,7 @@
     tabServicios.classList.add("active");
     tabArticulos?.classList.remove("active");
     setCategoryOptions();
+    setStockInputState();
     loadItems();
   });
 
@@ -256,6 +274,7 @@
     tabArticulos.classList.add("active");
     tabServicios?.classList.remove("active");
     setCategoryOptions();
+    setStockInputState();
     loadItems();
   });
 
@@ -269,5 +288,6 @@
   priceInput?.addEventListener("input", enforcePriceFormat);
 
   setCategoryOptions();
+  setStockInputState();
   loadItems();
 })();
